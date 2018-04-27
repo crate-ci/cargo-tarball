@@ -9,11 +9,8 @@
 
 ## Install
 
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-cargo-tarball = "0.1"
+```bash
+cargo install cargo-tarball
 ```
 
 ## License
