@@ -21,6 +21,9 @@ extern crate serde_yaml;
 #[cfg(feature = "toml")]
 extern crate toml;
 
+mod args;
+mod compress;
+
 use std::ffi;
 use std::fs;
 use std::io::Write;
@@ -34,7 +37,7 @@ use structopt::StructOpt;
 use stager::de::Render;
 use stager::builder::ActionBuilder;
 
-mod compress;
+use args::Arguments;
 
 mod stage {
     use super::*;
@@ -224,21 +227,6 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     }
 
     Ok(object)
-}
-
-#[derive(StructOpt, Debug)]
-#[structopt(name = "staging")]
-struct Arguments {
-    #[structopt(short = "i", long = "input", name = "STAGE", parse(from_os_str))]
-    input_stage: path::PathBuf,
-    #[structopt(short = "d", long = "data", name = "DATA_DIR", parse(from_os_str))]
-    data_dir: Vec<path::PathBuf>,
-    #[structopt(short = "o", long = "output", name = "OUT", parse(from_os_str))]
-    output: path::PathBuf,
-    #[structopt(short = "n", long = "dry-run")]
-    dry_run: bool,
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
-    verbosity: u8,
 }
 
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
