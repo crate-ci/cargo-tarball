@@ -299,7 +299,12 @@ fn main() {
     let code = match run() {
         Ok(e) => e,
         Err(ref e) => {
-            writeln!(&mut io::stderr(), "{}", e).expect("writing to stderr won't fail");
+            let mut causes = e.causes();
+            let mut result = causes.next().expect("an error should exist").to_string();
+            for cause in causes {
+                result.push_str(&format!("\nwith: {}", cause));
+            }
+            writeln!(&mut io::stderr(), "{}", result).expect("writing to stderr won't fail");
             exitcode::SOFTWARE
         }
     };
