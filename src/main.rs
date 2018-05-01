@@ -81,14 +81,14 @@ mod stage {
 
 fn load_stage(path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
     let extension = path.extension().unwrap_or_default();
-    let value = if extension == ffi::OsStr::new("yaml") {
+    let value = if extension == ffi::OsStr::new("yaml") || extension == ffi::OsStr::new("yml") {
         stage::load_yaml(path)
     } else if extension == ffi::OsStr::new("toml") {
         stage::load_toml(path)
     } else if extension == ffi::OsStr::new("json") {
         stage::load_json(path)
     } else {
-        bail!("Unsupported file type");
+        bail!("Unsupported file type: {:?}", extension);
     }?;
 
     Ok(value)
@@ -165,14 +165,14 @@ mod object {
 
 fn load_data(path: &path::Path) -> Result<liquid::Value, failure::Error> {
     let extension = path.extension().unwrap_or_default();
-    let value = if extension == ffi::OsStr::new("yaml") {
+    let value = if extension == ffi::OsStr::new("yaml") || extension == ffi::OsStr::new("yml") {
         object::load_yaml(path)
     } else if extension == ffi::OsStr::new("toml") {
         object::load_toml(path)
     } else if extension == ffi::OsStr::new("json") {
         object::load_json(path)
     } else {
-        bail!("Unsupported file type");
+        bail!("Unsupported file type: {:?}", extension);
     }?;
 
     Ok(value)
