@@ -13,7 +13,7 @@ extern crate flate2;
 #[cfg(feature = "tgz")]
 extern crate tar;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Format {
     Tgz,
     Zip,

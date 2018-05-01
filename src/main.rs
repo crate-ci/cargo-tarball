@@ -281,7 +281,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     };
 
     for action in staging {
-        debug!("{}", action);
+        info!("{}", action);
         if !args.dry_run {
             action
                 .perform()
@@ -290,7 +290,10 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     }
 
     let format = compress::Format::Tgz;
-    compress::compress(staging_dir.path(), &args.output, format)?;
+    info!("Writing out {:?} as {:?}", args.output, format);
+    if !args.dry_run {
+        compress::compress(staging_dir.path(), &args.output, format)?;
+    }
 
     Ok(exitcode::OK)
 }
