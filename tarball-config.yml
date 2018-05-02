@@ -1,0 +1,8 @@
+stage:
+  "/":
+  - type: SourceFile
+    path: "{{crate.root}}/target/debug/cargo-tarball"
+  "/completions":
+  - type: SourceFiles
+    path: "{{crate.root}}/target/debug/build/cargo-tarball-b8d713fa01725c21/out/completions"
+    pattern: "*"
