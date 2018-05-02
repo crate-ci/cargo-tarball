@@ -188,6 +188,8 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     let patterns: &[&'static str] = &[
         #[cfg(feature = "serde_yaml")]
         "*.yaml",
+        #[cfg(feature = "serde_yaml")]
+        "*.yml",
         #[cfg(feature = "serde_json")]
         "*.json",
         #[cfg(feature = "toml")]
