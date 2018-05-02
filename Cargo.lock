@@ -64,6 +64,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "cargo-tarball"
 version = "0.0.1"
 dependencies = [
+ "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "exitcode 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -74,7 +75,7 @@ dependencies = [
  "serde 1.0.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_yaml 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "stager 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stager 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -550,7 +551,7 @@ dependencies = [
 
 [[package]]
 name = "stager"
-version = "0.3.0"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -908,7 +909,7 @@ dependencies = [
 "checksum serde_derive_internals 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)" = "89b340a48245bc03ddba31d0ff1709c118df90edc6adabaca4aac77aea181cce"
 "checksum serde_json 1.0.13 (registry+https://github.com/rust-lang/crates.io-index)" = "5c508584d9913df116b91505eec55610a2f5b16e9ed793c46e4d0152872b3e74"
 "checksum serde_yaml 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)" = "e0f868d400d9d13d00988da49f7f02aeac6ef00f11901a8c535bd59d777b9e19"
-"checksum stager 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "08bc3abad7534f27ab0f6652f86449fa6950034bff1f75b7c75b6fea3226237b"
+"checksum stager 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "063ca8d36fa3ca87b67197c9b84f14f65e5fe1461c7e9a6d1f9855170b460517"
 "checksum strsim 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bb4f380125926a99e52bc279241539c018323fab05ad6368b56f93d9369ff550"
 "checksum structopt 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "3e7486f53a0c0c2bcc35acb8a792185c069eefd19a98450dd0578f35af396aab"
 "checksum structopt-derive 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "9ab6d6241f3255ce453eee9a84d4c250ed0f04e18d08131d6f23282c1d3355ad"

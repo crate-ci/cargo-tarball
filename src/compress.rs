@@ -1,3 +1,11 @@
+#[cfg(feature = "zip")]
+extern crate zip;
+
+#[cfg(feature = "tgz")]
+extern crate flate2;
+#[cfg(feature = "tar")]
+extern crate tar;
+
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -5,19 +13,7 @@ use std::path;
 
 use failure;
 
-#[cfg(feature = "zip")]
-extern crate zip;
-
-#[cfg(feature = "tgz")]
-extern crate flate2;
-#[cfg(feature = "tgz")]
-extern crate tar;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Format {
-    Tgz,
-    Zip,
-}
+use format::Format;
 
 #[cfg(feature = "zip")]
 fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
@@ -54,11 +50,25 @@ fn compress_zip(_root: &path::Path, _output: &path::Path) -> Result<(), failure:
     bail!("zip is not supported");
 }
 
+#[cfg(feature = "tar")]
+fn compress_tar(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
+    let file = File::create(output)?;
+    let mut archive = tar::Builder::new(file);
+    archive.append_dir_all(".", root)?;
+    archive.finish()?;
+    Ok(())
+}
+
+#[cfg(not(feature = "tar"))]
+fn compress_tar(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
+    bail!("tar is not supported");
+}
+
 #[cfg(feature = "tgz")]
 fn compress_tgz(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
     let buffer = Vec::new();
     let mut archive = tar::Builder::new(buffer);
-    archive.append_dir_all(root, ".")?;
+    archive.append_dir_all(".", root)?;
     let buffer = archive.into_inner()?;
     let file = File::create(output)?;
     let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
@@ -78,6 +88,7 @@ pub fn compress(
     format: Format,
 ) -> Result<(), failure::Error> {
     match format {
+        Format::Tar => compress_tar(root, output),
         Format::Tgz => compress_tgz(root, output),
         Format::Zip => compress_zip(root, output),
     }

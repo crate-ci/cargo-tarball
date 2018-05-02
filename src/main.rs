@@ -8,9 +8,13 @@ extern crate stager;
 extern crate tempfile;
 
 #[macro_use]
+extern crate clap;
+#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate serde;
 #[macro_use]
 extern crate structopt;
 
@@ -20,6 +24,11 @@ extern crate serde_json;
 extern crate serde_yaml;
 #[cfg(feature = "toml")]
 extern crate toml;
+
+mod args;
+mod compress;
+mod de;
+mod format;
 
 use std::ffi;
 use std::fs;
@@ -34,62 +43,7 @@ use structopt::StructOpt;
 use stager::de::Render;
 use stager::builder::ActionBuilder;
 
-mod compress;
-
-mod stage {
-    use super::*;
-    use std::io::Read;
-
-    #[cfg(feature = "serde_yaml")]
-    pub fn load_yaml(path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        let f = fs::File::open(path)?;
-        serde_yaml::from_reader(f).map_err(|e| e.into())
-    }
-
-    #[cfg(not(feature = "serde_yaml"))]
-    pub fn load_yaml(_path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        bail!("yaml is unsupported");
-    }
-
-    #[cfg(feature = "serde_json")]
-    pub fn load_json(path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        let f = fs::File::open(path)?;
-        serde_json::from_reader(f).map_err(|e| e.into())
-    }
-
-    #[cfg(not(feature = "serde_json"))]
-    pub fn load_json(_path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        bail!("json is unsupported");
-    }
-
-    #[cfg(feature = "toml")]
-    pub fn load_toml(path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        let mut f = fs::File::open(path)?;
-        let mut text = String::new();
-        f.read_to_string(&mut text)?;
-        toml::from_str(&text).map_err(|e| e.into())
-    }
-
-    #[cfg(not(feature = "toml"))]
-    pub fn load_toml(_path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-        bail!("toml is unsupported");
-    }
-}
-
-fn load_stage(path: &path::Path) -> Result<stager::de::Staging, failure::Error> {
-    let extension = path.extension().unwrap_or_default();
-    let value = if extension == ffi::OsStr::new("yaml") {
-        stage::load_yaml(path)
-    } else if extension == ffi::OsStr::new("toml") {
-        stage::load_toml(path)
-    } else if extension == ffi::OsStr::new("json") {
-        stage::load_json(path)
-    } else {
-        bail!("Unsupported file type");
-    }?;
-
-    Ok(value)
-}
+use args::Arguments;
 
 mod object {
     use super::*;
@@ -162,14 +116,14 @@ mod object {
 
 fn load_data(path: &path::Path) -> Result<liquid::Value, failure::Error> {
     let extension = path.extension().unwrap_or_default();
-    let value = if extension == ffi::OsStr::new("yaml") {
+    let value = if extension == ffi::OsStr::new("yaml") || extension == ffi::OsStr::new("yml") {
         object::load_yaml(path)
     } else if extension == ffi::OsStr::new("toml") {
         object::load_toml(path)
     } else if extension == ffi::OsStr::new("json") {
         object::load_json(path)
     } else {
-        bail!("Unsupported file type");
+        bail!("Unsupported file type: {:?}", extension);
     }?;
 
     Ok(value)
@@ -182,6 +136,8 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     let patterns: &[&'static str] = &[
         #[cfg(feature = "serde_yaml")]
         "*.yaml",
+        #[cfg(feature = "serde_yaml")]
+        "*.yml",
         #[cfg(feature = "serde_json")]
         "*.json",
         #[cfg(feature = "toml")]
@@ -208,7 +164,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
                 }
             };
             let key = match rel_source
-                .file_name()
+                .file_stem()
                 .expect("file name to exist due to globwalk")
                 .to_str()
                 .map(String::from)
@@ -224,21 +180,6 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     }
 
     Ok(object)
-}
-
-#[derive(StructOpt, Debug)]
-#[structopt(name = "staging")]
-struct Arguments {
-    #[structopt(short = "i", long = "input", name = "STAGE", parse(from_os_str))]
-    input_stage: path::PathBuf,
-    #[structopt(short = "d", long = "data", name = "DATA_DIR", parse(from_os_str))]
-    data_dir: Vec<path::PathBuf>,
-    #[structopt(short = "o", long = "output", name = "OUT", parse(from_os_str))]
-    output: path::PathBuf,
-    #[structopt(short = "n", long = "dry-run")]
-    dry_run: bool,
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
-    verbosity: u8,
 }
 
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
@@ -269,10 +210,10 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let data = load_data_dirs(&args.data_dir)?;
     let engine = stager::de::TemplateEngine::new(data)?;
 
-    let staging = load_stage(&args.input_stage)
+    let config = de::Config::from_file(&args.input_stage)
         .with_context(|_| format!("Failed to load {:?}", args.input_stage))?;
 
-    let staging = staging.format(&engine);
+    let staging = config.stage.format(&engine);
     let staging = match staging {
         Ok(s) => s,
         Err(e) => {
@@ -293,7 +234,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     };
 
     for action in staging {
-        debug!("{}", action);
+        info!("{}", action);
         if !args.dry_run {
             action
                 .perform()
@@ -301,8 +242,14 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
         }
     }
 
-    let format = compress::Format::Tgz;
-    compress::compress(staging_dir.path(), &args.output, format)?;
+    let format = args.format;
+    let target = config.target.format(&engine)?;
+    let output = args.output.join(format!("{}{}", target, format.ext()));
+    info!("Writing out {:?} as {:?}", output, format);
+    if !args.dry_run {
+        fs::create_dir_all(&args.output)?;
+        compress::compress(staging_dir.path(), &output, format)?;
+    }
 
     Ok(exitcode::OK)
 }
@@ -311,7 +258,12 @@ fn main() {
     let code = match run() {
         Ok(e) => e,
         Err(ref e) => {
-            writeln!(&mut io::stderr(), "{}", e).expect("writing to stderr won't fail");
+            let mut causes = e.causes();
+            let mut result = causes.next().expect("an error should exist").to_string();
+            for cause in causes {
+                result.push_str(&format!("\nwith: {}", cause));
+            }
+            writeln!(&mut io::stderr(), "{}", result).expect("writing to stderr won't fail");
             exitcode::SOFTWARE
         }
     };
