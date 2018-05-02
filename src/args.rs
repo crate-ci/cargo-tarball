@@ -1,5 +1,12 @@
 use std::path;
 
+use format::Format;
+
+#[cfg(windows)]
+const DEFAULT_FORMAT: &str = "Zip";
+#[cfg(not(windows))]
+const DEFAULT_FORMAT: &str = "Tar";
+
 #[derive(StructOpt, Debug)]
 #[structopt(name = "staging")]
 pub struct Arguments {
@@ -9,6 +16,10 @@ pub struct Arguments {
     pub data_dir: Vec<path::PathBuf>,
     #[structopt(short = "o", long = "output", name = "OUT", parse(from_os_str))]
     pub output: path::PathBuf,
+    #[structopt(long = "format",
+                raw(possible_values = "&Format::variants()", case_insensitive = "true"),
+                raw(default_value = "DEFAULT_FORMAT"))]
+    pub format: Format,
     #[structopt(short = "n", long = "dry-run")]
     pub dry_run: bool,
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]

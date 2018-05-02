@@ -28,6 +28,7 @@ tempfile = "3.0"
 
 env_logger = "0.5"
 exitcode = "1.1"
+clap = "2.0"
 structopt = "0.2"
 
 zip = { version = "0.3", default-features = false, features = ["deflate"], optional = true }
@@ -39,4 +40,5 @@ serde_yaml = { version = "0.7", optional = true }
 toml = { version = "0.4.0", optional = true }
 
 [build-dependencies]
+clap = "2.0"
 structopt = "0.2"

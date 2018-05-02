@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate clap;
+#[macro_use]
 extern crate structopt;
 
 use std::env;
@@ -9,6 +11,9 @@ use std::process;
 use structopt::StructOpt;
 use structopt::clap::Shell;
 
+#[allow(dead_code)]
+#[path = "src/format.rs"]
+mod format;
 #[allow(dead_code)]
 #[path = "src/args.rs"]
 mod args;

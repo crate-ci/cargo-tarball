@@ -1,10 +1,3 @@
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use std::path;
-
-use failure;
-
 #[cfg(feature = "zip")]
 extern crate zip;
 
@@ -13,12 +6,14 @@ extern crate flate2;
 #[cfg(feature = "tar")]
 extern crate tar;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Format {
-    Tar,
-    Tgz,
-    Zip,
-}
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
+use std::path;
+
+use failure;
+
+use format::Format;
 
 #[cfg(feature = "zip")]
 fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {

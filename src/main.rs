@@ -8,6 +8,8 @@ extern crate stager;
 extern crate tempfile;
 
 #[macro_use]
+extern crate clap;
+#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
@@ -23,6 +25,7 @@ extern crate toml;
 
 mod args;
 mod compress;
+mod format;
 
 use std::ffi;
 use std::fs;
@@ -289,7 +292,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
         }
     }
 
-    let format = compress::Format::Tar;
+    let format = args.format;
     info!("Writing out {:?} as {:?}", args.output, format);
     if !args.dry_run {
         compress::compress(staging_dir.path(), &args.output, format)?;
