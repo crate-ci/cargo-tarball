@@ -188,7 +188,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
         "*.toml",
     ];
     for root in roots {
-        for entry in globwalk::GlobWalker::from_patterns(root, &patterns)? {
+        for entry in globwalk::GlobWalker::from_patterns(root, patterns)? {
             let entry = entry?;
             let data_file = entry.path();
             let data = load_data(data_file)?;
