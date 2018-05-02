@@ -33,7 +33,7 @@ fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::E
             let name = path.strip_prefix(root)
                 .expect("root is still prefix")
                 .to_str()
-                .ok_or_else(|| format_err!("Invalid character in path"))?;
+                .ok_or_else(|| format_err!("Invalid character in path: {:?}", path))?;
             // TODO(epage): Read permissions from disc
             let options = zip::write::FileOptions::default()
                 .compression_method(zip::CompressionMethod::Deflated)
