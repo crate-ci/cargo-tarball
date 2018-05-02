@@ -12,7 +12,7 @@ categories = ["development-tools::build-utils"]
 keywords = ["cargo", "release", "package"]
 
 [features]
-default = ["zip", "tgz", "toml", "json", "yaml"]
+default = ["zip", "tar", "tgz", "toml", "json", "yaml"]
 tgz = ["tar", "flate2"]
 json = ["serde_json"]
 yaml = ["serde_yaml"]

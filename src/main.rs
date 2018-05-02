@@ -289,7 +289,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
         }
     }
 
-    let format = compress::Format::Tgz;
+    let format = compress::Format::Tar;
     info!("Writing out {:?} as {:?}", args.output, format);
     if !args.dry_run {
         compress::compress(staging_dir.path(), &args.output, format)?;
