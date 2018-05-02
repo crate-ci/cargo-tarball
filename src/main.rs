@@ -216,7 +216,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
                 }
             };
             let key = match rel_source
-                .file_name()
+                .file_stem()
                 .expect("file name to exist due to globwalk")
                 .to_str()
                 .map(String::from)
