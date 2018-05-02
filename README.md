@@ -3,6 +3,7 @@
 > **Stage files** - This crate stages files for packaging
 
 [![Travis Status](https://travis-ci.org/crate-ci/cargo-tarball.svg?branch=master)](https://travis-ci.org/crate-ci/cargo-tarball)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/132yr9djd5y7w5wf/branch/master?svg=true)](https://ci.appveyor.com/project/epage/cargo-tarball/branch/master)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)][Documentation]
 ![License](https://img.shields.io/crates/l/cargo-tarball.svg)
 [![Crates Status](https://img.shields.io/crates/v/cargo-tarball.svg)](https://crates.io/crates/cargo-tarball)
