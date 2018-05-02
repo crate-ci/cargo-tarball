@@ -4,7 +4,6 @@ use std::io::Write;
 use std::path;
 
 use failure;
-use globwalk;
 
 #[cfg(feature = "zip")]
 extern crate zip;
@@ -22,6 +21,8 @@ pub enum Format {
 
 #[cfg(feature = "zip")]
 fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
+    use globwalk;
+
     let file = File::create(output)?;
     let mut zip = zip::ZipWriter::new(file);
     let mut buffer = Vec::new();
@@ -49,7 +50,7 @@ fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::E
 }
 
 #[cfg(not(feature = "zip"))]
-fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
+fn compress_zip(_root: &path::Path, _output: &path::Path) -> Result<(), failure::Error> {
     bail!("zip is not supported");
 }
 
@@ -67,7 +68,7 @@ fn compress_tgz(root: &path::Path, output: &path::Path) -> Result<(), failure::E
 }
 
 #[cfg(not(feature = "tgz"))]
-fn compress_tgz(root: &path::Path, output: &path::Path) -> Result<(), failure::Error> {
+fn compress_tgz(_root: &path::Path, _output: &path::Path) -> Result<(), failure::Error> {
     bail!("tgz is not supported");
 }
 

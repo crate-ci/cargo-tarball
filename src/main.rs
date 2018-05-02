@@ -179,7 +179,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     let mut object = liquid::Object::new();
     // TODO(epage): swap out globwalk for something that uses gitignore so we can have
     // exclusion support.
-    let patterns = [
+    let patterns: &[&'static str] = &[
         #[cfg(feature = "serde_yaml")]
         "*.yaml",
         #[cfg(feature = "serde_json")]
