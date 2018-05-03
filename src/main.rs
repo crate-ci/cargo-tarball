@@ -1,5 +1,6 @@
 #![warn(warnings)]
 
+extern crate cargo_metadata;
 extern crate env_logger;
 extern crate exitcode;
 extern crate globwalk;
@@ -182,8 +183,35 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     Ok(object)
 }
 
-fn load_data(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Error> {
-    let data = load_data_dirs(roots)?;
+fn load_data(
+    roots: &[path::PathBuf],
+    manifest_path: Option<&path::Path>,
+) -> Result<liquid::Object, failure::Error> {
+    let mut data = load_data_dirs(roots)?;
+
+    let cargo_meta = cargo_metadata::metadata(manifest_path).map_err(failure::SyncFailure::new)?;
+    if cargo_meta.packages.len() != 1 {
+        bail!("workspaces are not supported at this time.");
+    }
+    let cargo_pkg = &cargo_meta.packages[0];
+    let cargo_obj: liquid::Object = vec![
+        ("name".to_owned(), liquid::Value::scalar(&cargo_pkg.name)),
+        (
+            "version".to_owned(),
+            liquid::Value::scalar(&cargo_pkg.version),
+        ),
+        (
+            "workspace_root".to_owned(),
+            liquid::Value::scalar(&cargo_meta.workspace_root),
+        ),
+        (
+            "target_directory".to_owned(),
+            liquid::Value::scalar(&cargo_meta.target_directory),
+        ),
+    ].into_iter()
+        .collect();
+    let cargo_meta = liquid::Value::Object(cargo_obj);
+    object::insert(&mut data, &[], "cargo".to_string(), cargo_meta)?;
 
     Ok(data)
 }
@@ -227,7 +255,10 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     }
     builder.init();
 
-    let data = load_data(&args.data_dir)?;
+    let data = load_data(
+        &args.data_dir,
+        args.manifest_path.as_ref().map(|p| p.as_path()),
+    )?;
     if args.dump == Some(args::Dump::Data) {
         dump_data(&data)?;
     }

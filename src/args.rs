@@ -15,6 +15,8 @@ pub struct Arguments {
     pub input_stage: Option<path::PathBuf>,
     #[structopt(short = "d", long = "data", name = "DATA_DIR", parse(from_os_str))]
     pub data_dir: Vec<path::PathBuf>,
+    #[structopt(long = "manifest-path", name = "PATH", parse(from_os_str))]
+    pub manifest_path: Option<path::PathBuf>,
     #[structopt(flatten)]
     pub output: Output,
     #[structopt(long = "dump",

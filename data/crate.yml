@@ -1,3 +1,1 @@
-name: cargo-tarball
 target: x86_64-unknown-linux-gnu
-root: /home/epage/git/cargo-tarball

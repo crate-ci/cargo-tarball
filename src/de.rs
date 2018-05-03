@@ -75,7 +75,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            target: stager::de::Template::new("{{crate.name}}-{{ci.tag}}-{{crate.target}}"),
+            target: stager::de::Template::new("{{cargo.name}}-{{cargo.version}}-{{crate.target}}"),
             stage: Default::default(),
         }
     }
