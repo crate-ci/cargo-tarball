@@ -15,7 +15,7 @@ keywords = ["cargo", "release", "package"]
 default = ["zip", "tar", "tgz", "toml", "json", "yaml"]
 tgz = ["tar", "flate2"]
 json = ["serde_json"]
-yaml = ["serde_yaml"]
+yaml = []
 
 [dependencies]
 failure = "0.1.1"
@@ -38,7 +38,8 @@ tar = { version = "0.4", optional = true }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"], optional = true }
 
 serde_json = { version = "1.0", optional = true }
-serde_yaml = { version = "0.7", optional = true }
+# Not optional for the sake of `--dump`
+serde_yaml = "0.7"
 toml = { version = "0.4.0", optional = true }
 
 [build-dependencies]

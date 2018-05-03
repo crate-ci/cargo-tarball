@@ -21,7 +21,6 @@ extern crate structopt;
 
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
-#[cfg(feature = "serde_yaml")]
 extern crate serde_yaml;
 #[cfg(feature = "toml")]
 extern crate toml;
@@ -50,24 +49,24 @@ mod object {
     use super::*;
     use std::io::Read;
 
-    #[cfg(feature = "serde_yaml")]
+    #[cfg(feature = "yaml")]
     pub fn load_yaml(path: &path::Path) -> Result<liquid::Value, failure::Error> {
         let f = fs::File::open(path)?;
         serde_yaml::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_yaml"))]
+    #[cfg(not(feature = "yaml"))]
     pub fn load_yaml(_path: &path::Path) -> Result<liquid::Value, failure::Error> {
         bail!("yaml is unsupported");
     }
 
-    #[cfg(feature = "serde_json")]
+    #[cfg(feature = "json")]
     pub fn load_json(path: &path::Path) -> Result<liquid::Value, failure::Error> {
         let f = fs::File::open(path)?;
         serde_json::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_json"))]
+    #[cfg(not(feature = "json"))]
     pub fn load_json(_path: &path::Path) -> Result<liquid::Value, failure::Error> {
         bail!("json is unsupported");
     }
