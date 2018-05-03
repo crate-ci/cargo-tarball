@@ -265,7 +265,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
 
     let input_stage = args.input_stage
         .as_ref()
-        .ok_or_else(|| format_err!("`--input` is required"))?;
+        .ok_or_else(|| failure::Context::new("`--input` is required"))?;
     let config = de::Config::from_file(input_stage)
         .with_context(|_| format!("Failed to load {:?}", input_stage))?;
     if args.dump == Some(args::Dump::Config) {
@@ -306,7 +306,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let output_dir = args.output
         .dir
         .as_ref()
-        .ok_or_else(|| format_err!("`--output` is required"))?;
+        .ok_or_else(|| failure::Context::new("`--output` is required"))?;
     let output = output_dir.join(format!("{}{}", target, format.ext()));
     info!("Writing out {:?} as {:?}", output, format);
     if !args.output.dry_run {
