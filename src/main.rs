@@ -114,7 +114,7 @@ mod object {
     }
 }
 
-fn load_data(path: &path::Path) -> Result<liquid::Value, failure::Error> {
+fn load_data_file(path: &path::Path) -> Result<liquid::Value, failure::Error> {
     let extension = path.extension().unwrap_or_default();
     let value = if extension == ffi::OsStr::new("yaml") || extension == ffi::OsStr::new("yml") {
         object::load_yaml(path)
@@ -147,7 +147,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
         for entry in globwalk::GlobWalker::from_patterns(root, patterns)? {
             let entry = entry?;
             let data_file = entry.path();
-            let data = load_data(data_file)?;
+            let data = load_data_file(data_file)?;
             let rel_source = data_file.strip_prefix(&root)?;
             let path = rel_source.parent().unwrap_or_else(|| path::Path::new(""));
             let path: Option<Vec<_>> = path.components()
@@ -182,6 +182,12 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     Ok(object)
 }
 
+fn load_data(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Error> {
+    let data = load_data_dirs(roots)?;
+
+    Ok(data)
+}
+
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let mut builder = env_logger::Builder::new();
     let args = Arguments::from_args();
@@ -207,7 +213,7 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     }
     builder.init();
 
-    let data = load_data_dirs(&args.data_dir)?;
+    let data = load_data(&args.data_dir)?;
     let engine = stager::de::TemplateEngine::new(data)?;
 
     let config = de::Config::from_file(&args.input_stage)
@@ -235,19 +241,19 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
 
     for action in staging {
         info!("{}", action);
-        if !args.dry_run {
+        if !args.output.dry_run {
             action
                 .perform()
                 .with_context(|_| format!("Failed staging files: {}", action))?;
         }
     }
 
-    let format = args.format;
+    let format = args.output.format;
     let target = config.target.format(&engine)?;
-    let output = args.output.join(format!("{}{}", target, format.ext()));
+    let output = args.output.dir.join(format!("{}{}", target, format.ext()));
     info!("Writing out {:?} as {:?}", output, format);
-    if !args.dry_run {
-        fs::create_dir_all(&args.output)?;
+    if !args.output.dry_run {
+        fs::create_dir_all(&args.output.dir)?;
         compress::compress(staging_dir.path(), &output, format)?;
     }
 
