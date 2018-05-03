@@ -1,5 +1,6 @@
 #![warn(warnings)]
 
+extern crate cargo_metadata;
 extern crate env_logger;
 extern crate exitcode;
 extern crate globwalk;
@@ -20,7 +21,6 @@ extern crate structopt;
 
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
-#[cfg(feature = "serde_yaml")]
 extern crate serde_yaml;
 #[cfg(feature = "toml")]
 extern crate toml;
@@ -49,24 +49,24 @@ mod object {
     use super::*;
     use std::io::Read;
 
-    #[cfg(feature = "serde_yaml")]
+    #[cfg(feature = "yaml")]
     pub fn load_yaml(path: &path::Path) -> Result<liquid::Value, failure::Error> {
         let f = fs::File::open(path)?;
         serde_yaml::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_yaml"))]
+    #[cfg(not(feature = "yaml"))]
     pub fn load_yaml(_path: &path::Path) -> Result<liquid::Value, failure::Error> {
         bail!("yaml is unsupported");
     }
 
-    #[cfg(feature = "serde_json")]
+    #[cfg(feature = "json")]
     pub fn load_json(path: &path::Path) -> Result<liquid::Value, failure::Error> {
         let f = fs::File::open(path)?;
         serde_json::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_json"))]
+    #[cfg(not(feature = "json"))]
     pub fn load_json(_path: &path::Path) -> Result<liquid::Value, failure::Error> {
         bail!("json is unsupported");
     }
@@ -114,7 +114,7 @@ mod object {
     }
 }
 
-fn load_data(path: &path::Path) -> Result<liquid::Value, failure::Error> {
+fn load_data_file(path: &path::Path) -> Result<liquid::Value, failure::Error> {
     let extension = path.extension().unwrap_or_default();
     let value = if extension == ffi::OsStr::new("yaml") || extension == ffi::OsStr::new("yml") {
         object::load_yaml(path)
@@ -147,7 +147,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
         for entry in globwalk::GlobWalker::from_patterns(root, patterns)? {
             let entry = entry?;
             let data_file = entry.path();
-            let data = load_data(data_file)?;
+            let data = load_data_file(data_file)?;
             let rel_source = data_file.strip_prefix(&root)?;
             let path = rel_source.parent().unwrap_or_else(|| path::Path::new(""));
             let path: Option<Vec<_>> = path.components()
@@ -182,6 +182,53 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
     Ok(object)
 }
 
+fn load_data(
+    roots: &[path::PathBuf],
+    manifest_path: Option<&path::Path>,
+) -> Result<liquid::Object, failure::Error> {
+    let mut data = load_data_dirs(roots)?;
+
+    let cargo_meta = cargo_metadata::metadata(manifest_path).map_err(failure::SyncFailure::new)?;
+    if cargo_meta.packages.len() != 1 {
+        bail!("workspaces are not supported at this time.");
+    }
+    let cargo_pkg = &cargo_meta.packages[0];
+    let cargo_obj: liquid::Object = vec![
+        ("name".to_owned(), liquid::Value::scalar(&cargo_pkg.name)),
+        (
+            "version".to_owned(),
+            liquid::Value::scalar(&cargo_pkg.version),
+        ),
+        (
+            "workspace_root".to_owned(),
+            liquid::Value::scalar(&cargo_meta.workspace_root),
+        ),
+        (
+            "target_directory".to_owned(),
+            liquid::Value::scalar(&cargo_meta.target_directory),
+        ),
+    ].into_iter()
+        .collect();
+    let cargo_meta = liquid::Value::Object(cargo_obj);
+    object::insert(&mut data, &[], "cargo".to_string(), cargo_meta)?;
+
+    Ok(data)
+}
+
+fn dump_data(data: &liquid::Object) -> Result<(), failure::Error> {
+    let mut data = serde_yaml::to_string(data)?;
+    data.drain(..4);
+    println!("{}", data);
+    bail!("");
+}
+
+fn dump_config(config: &de::Config) -> Result<(), failure::Error> {
+    let mut config = serde_yaml::to_string(config)?;
+    config.drain(..4);
+    println!("{}", config);
+    bail!("");
+}
+
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let mut builder = env_logger::Builder::new();
     let args = Arguments::from_args();
@@ -207,11 +254,23 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     }
     builder.init();
 
-    let data = load_data_dirs(&args.data_dir)?;
+    let data = load_data(
+        &args.data_dir,
+        args.manifest_path.as_ref().map(|p| p.as_path()),
+    )?;
+    if args.dump == Some(args::Dump::Data) {
+        dump_data(&data)?;
+    }
     let engine = stager::de::TemplateEngine::new(data)?;
 
-    let config = de::Config::from_file(&args.input_stage)
-        .with_context(|_| format!("Failed to load {:?}", args.input_stage))?;
+    let input_stage = args.input_stage
+        .as_ref()
+        .ok_or_else(|| failure::Context::new("`--input` is required"))?;
+    let config = de::Config::from_file(input_stage)
+        .with_context(|_| format!("Failed to load {:?}", input_stage))?;
+    if args.dump == Some(args::Dump::Config) {
+        dump_config(&config)?;
+    }
 
     let staging = config.stage.format(&engine);
     let staging = match staging {
@@ -235,19 +294,23 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
 
     for action in staging {
         info!("{}", action);
-        if !args.dry_run {
+        if !args.output.dry_run {
             action
                 .perform()
                 .with_context(|_| format!("Failed staging files: {}", action))?;
         }
     }
 
-    let format = args.format;
+    let format = args.output.format;
     let target = config.target.format(&engine)?;
-    let output = args.output.join(format!("{}{}", target, format.ext()));
+    let output_dir = args.output
+        .dir
+        .as_ref()
+        .ok_or_else(|| failure::Context::new("`--output` is required"))?;
+    let output = output_dir.join(format!("{}{}", target, format.ext()));
     info!("Writing out {:?} as {:?}", output, format);
-    if !args.dry_run {
-        fs::create_dir_all(&args.output)?;
+    if !args.output.dry_run {
+        fs::create_dir_all(&output_dir)?;
         compress::compress(staging_dir.path(), &output, format)?;
     }
 

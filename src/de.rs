@@ -6,9 +6,9 @@ use std::path;
 use failure;
 use stager;
 
-#[cfg(feature = "serde_json")]
+#[cfg(feature = "json")]
 use serde_json;
-#[cfg(feature = "serde_yaml")]
+#[cfg(feature = "yaml")]
 use serde_yaml;
 #[cfg(feature = "toml")]
 use toml;
@@ -36,24 +36,24 @@ impl Config {
         Ok(value)
     }
 
-    #[cfg(feature = "serde_yaml")]
+    #[cfg(feature = "yaml")]
     fn load_yaml(path: &path::Path) -> Result<Self, failure::Error> {
         let f = fs::File::open(path)?;
         serde_yaml::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_yaml"))]
+    #[cfg(not(feature = "yaml"))]
     fn load_yaml(_path: &path::Path) -> Result<Self, failure::Error> {
         bail!("yaml is unsupported");
     }
 
-    #[cfg(feature = "serde_json")]
+    #[cfg(feature = "json")]
     fn load_json(path: &path::Path) -> Result<Self, failure::Error> {
         let f = fs::File::open(path)?;
         serde_json::from_reader(f).map_err(|e| e.into())
     }
 
-    #[cfg(not(feature = "serde_json"))]
+    #[cfg(not(feature = "json"))]
     fn load_json(_path: &path::Path) -> Result<Self, failure::Error> {
         bail!("json is unsupported");
     }
@@ -75,7 +75,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            target: stager::de::Template::new("{{crate.name}}-{{ci.tag}}-{{crate.target}}"),
+            target: stager::de::Template::new("{{cargo.name}}-{{cargo.version}}-{{crate.target}}"),
             stage: Default::default(),
         }
     }
