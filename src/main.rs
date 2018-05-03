@@ -188,6 +188,20 @@ fn load_data(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Error> 
     Ok(data)
 }
 
+fn dump_data(data: &liquid::Object) -> Result<(), failure::Error> {
+    let mut data = serde_yaml::to_string(data)?;
+    data.drain(..4);
+    println!("{}", data);
+    bail!("");
+}
+
+fn dump_config(config: &de::Config) -> Result<(), failure::Error> {
+    let mut config = serde_yaml::to_string(config)?;
+    config.drain(..4);
+    println!("{}", config);
+    bail!("");
+}
+
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let mut builder = env_logger::Builder::new();
     let args = Arguments::from_args();
@@ -214,10 +228,19 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     builder.init();
 
     let data = load_data(&args.data_dir)?;
+    if args.dump == Some(args::Dump::Data) {
+        dump_data(&data)?;
+    }
     let engine = stager::de::TemplateEngine::new(data)?;
 
-    let config = de::Config::from_file(&args.input_stage)
-        .with_context(|_| format!("Failed to load {:?}", args.input_stage))?;
+    let input_stage = args.input_stage
+        .as_ref()
+        .ok_or_else(|| format_err!("`--input` is required"))?;
+    let config = de::Config::from_file(input_stage)
+        .with_context(|_| format!("Failed to load {:?}", input_stage))?;
+    if args.dump == Some(args::Dump::Config) {
+        dump_config(&config)?;
+    }
 
     let staging = config.stage.format(&engine);
     let staging = match staging {
@@ -250,10 +273,14 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
 
     let format = args.output.format;
     let target = config.target.format(&engine)?;
-    let output = args.output.dir.join(format!("{}{}", target, format.ext()));
+    let output_dir = args.output
+        .dir
+        .as_ref()
+        .ok_or_else(|| format_err!("`--output` is required"))?;
+    let output = output_dir.join(format!("{}{}", target, format.ext()));
     info!("Writing out {:?} as {:?}", output, format);
     if !args.output.dry_run {
-        fs::create_dir_all(&args.output.dir)?;
+        fs::create_dir_all(&output_dir)?;
         compress::compress(staging_dir.path(), &output, format)?;
     }
 
