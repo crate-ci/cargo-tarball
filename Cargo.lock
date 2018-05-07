@@ -76,7 +76,7 @@ dependencies = [
  "serde 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_yaml 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "stager 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stager 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "stager"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -910,7 +910,7 @@ dependencies = [
 "checksum serde_derive_internals 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)" = "89b340a48245bc03ddba31d0ff1709c118df90edc6adabaca4aac77aea181cce"
 "checksum serde_json 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)" = "f3ad6d546e765177cf3dded3c2e424a8040f870083a0e64064746b958ece9cb1"
 "checksum serde_yaml 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)" = "107bb818146aaf922e7bbcf6a940f1db2f0dcf381779b451e400331b2c6f86db"
-"checksum stager 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "063ca8d36fa3ca87b67197c9b84f14f65e5fe1461c7e9a6d1f9855170b460517"
+"checksum stager 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "5f8768477ba646bc4ad49bec6e8108f04837c1c2ee4d82395910f5d8e4996ab9"
 "checksum strsim 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bb4f380125926a99e52bc279241539c018323fab05ad6368b56f93d9369ff550"
 "checksum structopt 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "d3b96fc11ba8cf80bfa5cdd6de538c9f7c66f519f83e8caabc554e431bf3e36d"
 "checksum structopt-derive 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "95063e55a45976cfce9f03fcd26dff356ee622f1a14147bfae068ab8bed153a6"
