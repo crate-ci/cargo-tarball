@@ -303,13 +303,13 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
 
     let format = args.output.format;
     let target = config.target.format(&engine)?;
-    let output_dir = args.output
-        .dir
-        .as_ref()
-        .ok_or_else(|| failure::Context::new("`--output` is required"))?;
-    let output = output_dir.join(format!("{}{}", target, format.ext()));
-    info!("Writing out {:?} as {:?}", output, format);
+    info!("Writing out {:?} as {:?}", target, format);
     if !args.output.dry_run {
+        let output_dir = args.output
+            .dir
+            .as_ref()
+            .ok_or_else(|| failure::Context::new("`--output` is required"))?;
+        let output = output_dir.join(format!("{}{}", target, format.ext()));
         fs::create_dir_all(&output_dir)?;
         compress::compress(staging_dir.path(), &output, format)?;
     }
