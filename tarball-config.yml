@@ -4,5 +4,5 @@ stage:
     path: "{{cargo.target_directory}}/debug/cargo-tarball"
   "/completions":
   - type: SourceFiles
-    path: "{{cargo.target_directory}}/debug/build/cargo-tarball-b8d713fa01725c21/out/completions"
+    path: "{{cargo.target_directory}}/debug/build/cargo-tarball-63c1f7d9f2ae9bcc/out/completions"
     pattern: "*"

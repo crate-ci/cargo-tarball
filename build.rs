@@ -5,6 +5,7 @@ extern crate structopt;
 
 use std::env;
 use std::fs;
+use std::io::Write;
 use std::path;
 use std::process;
 
@@ -19,6 +20,10 @@ mod format;
 mod args;
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=src/format.rs");
+    println!("cargo:rerun-if-changed=src/args.rs");
+
     // OUT_DIR is set by Cargo and it's where any additional build artifacts
     // are written.
     let outdir = match env::var_os("OUT_DIR") {
@@ -42,4 +47,12 @@ fn main() {
     clap.gen_completions(bin, Shell::Fish, &completions_dir);
     clap.gen_completions(bin, Shell::PowerShell, &completions_dir);
     clap.gen_completions(bin, Shell::Zsh, &completions_dir);
+
+    // env::ARCH doesn't include full triple, and AFAIK there isn't a nicer way of getting the full triple
+    // (see lib.rs for the rest of this hack)
+    let out = path::PathBuf::from(env::var_os("OUT_DIR").expect("run within cargo"))
+        .join("default_target.txt");
+    let default_target = env::var("TARGET").expect("run as cargo build script");
+    let mut file = fs::File::create(out).unwrap();
+    file.write_all(default_target.as_bytes()).unwrap();
 }
