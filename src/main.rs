@@ -185,6 +185,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
 fn load_data(
     roots: &[path::PathBuf],
     manifest_path: Option<&path::Path>,
+    target: &str,
 ) -> Result<liquid::Object, failure::Error> {
     let mut data = load_data_dirs(roots)?;
 
@@ -194,6 +195,7 @@ fn load_data(
     }
     let cargo_pkg = &cargo_meta.packages[0];
     let cargo_obj: liquid::Object = vec![
+        ("target".to_owned(), liquid::Value::scalar(target)),
         ("name".to_owned(), liquid::Value::scalar(&cargo_pkg.name)),
         (
             "version".to_owned(),
@@ -229,6 +231,8 @@ fn dump_config(config: &de::Config) -> Result<(), failure::Error> {
     bail!("");
 }
 
+const DEFAULT_TARGET: &str = include_str!(concat!(env!("OUT_DIR"), "/default_target.txt"));
+
 fn run() -> Result<exitcode::ExitCode, failure::Error> {
     let mut builder = env_logger::Builder::new();
     let args = Arguments::from_args();
@@ -254,9 +258,14 @@ fn run() -> Result<exitcode::ExitCode, failure::Error> {
     }
     builder.init();
 
+    let target = args.target
+        .as_ref()
+        .map(|s| s.as_ref())
+        .unwrap_or(DEFAULT_TARGET);
     let data = load_data(
         &args.data_dir,
         args.manifest_path.as_ref().map(|p| p.as_path()),
+        target,
     )?;
     if args.dump == Some(args::Dump::Data) {
         dump_data(&data)?;
