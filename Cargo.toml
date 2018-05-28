@@ -33,7 +33,7 @@ exitcode = "1.1"
 clap = "2.0"
 structopt = "0.2"
 
-zip = { version = "0.3", default-features = false, features = ["deflate"], optional = true }
+zip = { version = "0.4", default-features = false, features = ["deflate"], optional = true }
 tar = { version = "0.4", optional = true }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"], optional = true }
 
