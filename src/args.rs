@@ -1,7 +1,6 @@
 use std::path;
 
 use format::Format;
-use structopt::StructOpt;
 
 #[cfg(windows)]
 const DEFAULT_FORMAT: &str = "Zip";
