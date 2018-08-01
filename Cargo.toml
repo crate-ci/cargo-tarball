@@ -26,7 +26,7 @@ globwalk = "0.3"
 tempfile = "3.0"
 
 liquid = "0.14"
-cargo_metadata = "0.5"
+cargo_metadata = "0.6"
 
 env_logger = "0.5"
 exitcode = "1.1"
