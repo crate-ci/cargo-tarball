@@ -39,7 +39,7 @@ flate2 = { version = "1.0", default-features = false, features = ["rust_backend"
 
 serde_json = { version = "1.0", optional = true }
 # Not optional for the sake of `--dump`
-serde_yaml = "0.7"
+serde_yaml = "0.8"
 toml = { version = "0.4.0", optional = true }
 
 [build-dependencies]
