@@ -22,7 +22,7 @@ failure = "0.1.1"
 log = "0.4"
 serde = "1.0"
 stager = "0.3.4"
-globwalk = "0.3"
+globwalk = "0.5"
 tempfile = "3.0"
 
 liquid = "0.14"
