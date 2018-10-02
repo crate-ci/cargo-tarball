@@ -22,7 +22,7 @@ fn compress_zip(root: &path::Path, output: &path::Path) -> Result<(), failure::E
     let file = File::create(output)?;
     let mut zip = zip::ZipWriter::new(file);
     let mut buffer = Vec::new();
-    for entry in globwalk::GlobWalker::new(root, "*")? {
+    for entry in globwalk::GlobWalkerBuilder::new(root, "*").build()? {
         let entry = entry?;
         let path = entry.path();
         if path.is_file() {
