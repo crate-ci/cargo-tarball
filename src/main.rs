@@ -131,8 +131,6 @@ fn load_data_file(path: &path::Path) -> Result<liquid::Value, failure::Error> {
 
 fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Error> {
     let mut object = liquid::Object::new();
-    // TODO(epage): swap out globwalk for something that uses gitignore so we can have
-    // exclusion support.
     let patterns: &[&'static str] = &[
         #[cfg(feature = "serde_yaml")]
         "*.yaml",
@@ -144,7 +142,7 @@ fn load_data_dirs(roots: &[path::PathBuf]) -> Result<liquid::Object, failure::Er
         "*.toml",
     ];
     for root in roots {
-        for entry in globwalk::GlobWalker::from_patterns(root, patterns)? {
+        for entry in globwalk::GlobWalkerBuilder::from_patterns(root, patterns).build()? {
             let entry = entry?;
             let data_file = entry.path();
             let data = load_data_file(data_file)?;
@@ -330,7 +328,7 @@ fn main() {
     let code = match run() {
         Ok(e) => e,
         Err(ref e) => {
-            let mut causes = e.causes();
+            let mut causes = e.iter_chain();
             let mut result = causes.next().expect("an error should exist").to_string();
             for cause in causes {
                 result.push_str(&format!("\nwith: {}", cause));
