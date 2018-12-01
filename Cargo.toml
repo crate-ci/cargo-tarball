@@ -28,7 +28,7 @@ tempfile = "3.0"
 liquid = "0.14"
 cargo_metadata = "0.6"
 
-env_logger = "0.5"
+env_logger = "0.6"
 exitcode = "1.1"
 clap = "2.32"
 structopt = "0.2"
